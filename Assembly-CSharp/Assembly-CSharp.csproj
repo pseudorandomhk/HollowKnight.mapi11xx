@@ -1,0 +1,123 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <RootNamespace>Modding</RootNamespace>
+        <AssemblyName>Assembly-CSharp.mm</AssemblyName>
+        <TargetFramework>net35</TargetFramework>
+        <AssemblyTitle>Hollow Knight - Mod API Enabled</AssemblyTitle>
+        <Product>Modding API</Product>
+        <OutputPath>bin\$(Configuration)\</OutputPath>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <RestorePackagesPath>packages</RestorePackagesPath>
+        <LangVersion>latest</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Files Include="$(SolutionDir)Vanilla/*" />
+
+        <BuildDir Include="$(TargetDir)" />
+
+        <!-- <Dependencies Include="$(TargetDir)Newtonsoft.Json.dll" /> -->
+        <Dependencies Include="$(TargetDir)MMHOOK_Assembly-CSharp.dll" />
+        <Dependencies Include="$(TargetDir)MMHOOK_PlayMaker.dll" />
+        <Dependencies Include="$(TargetDir)MonoMod.Utils.dll" />
+        <Dependencies Include="$(TargetDir)Mono.Cecil.dll" />
+        <Dependencies Include="$(TargetDir)MonoMod.RuntimeDetour.dll" />
+    </ItemGroup>
+
+    <PropertyGroup>
+        <OutputDir>$(SolutionDir)/OutputFinal</OutputDir>
+        <Mono Condition="$(OS) == WINDOWS_NT" />
+        <Mono Condition="$(OS) != WINDOWS_NT">mono</Mono>
+    </PropertyGroup>
+
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+        <Delete Condition="Exists('$(OutputDir)')" Files="$(OutputDir)" />
+
+        <Copy SkipUnchangedFiles="true" SourceFiles="@(Files)" DestinationFolder="@(BuildDir)" />
+        
+        <Delete Condition="Exists('MONOMODDED_Assembly-CSharp.dll')" Files="MONOMODDED_Assembly-CSharp.dll" />
+        <Exec WorkingDirectory="@(BuildDir)" Command="$(Mono) MonoMod.exe Assembly-CSharp.dll" />
+
+        <!-- Generate Hooks -->
+        <Exec Condition="!Exists('$(TargetDir)MMHOOK_Assembly-CSharp.dll')" WorkingDirectory="@(BuildDir)" Command="$(Mono) MonoMod.RuntimeDetour.HookGen.exe --private Assembly-CSharp.dll" />
+        <Exec Condition="!Exists('$(TargetDir)MMHOOK_Playmaker.dll')" WorkingDirectory="@(BuildDir)" Command="$(Mono) MonoMod.RuntimeDetour.HookGen.exe --private PlayMaker.dll" />
+    </Target>
+
+    <Target Name="OutputFinal" AfterTargets="PostBuild">
+        <!-- Cleanup -->
+        <RemoveDir Directories="$(OutputDir)/" />
+
+        <!-- Make the output directory -->
+        <MakeDir Directories="$(OutputDir)/" />
+        
+        <!-- Copy API -->
+        <Copy SourceFiles="$(TargetDir)MONOMODDED_Assembly-CSharp.dll" DestinationFiles="$(OutputDir)/Assembly-CSharp.dll" />
+
+        <!-- Copy the dependencies for the API and hooks for mods -->
+        <Copy SourceFiles="@(Dependencies)" DestinationFolder="$(OutputDir)" />
+    </Target>
+
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <DebugType>full</DebugType>
+        <!--
+        <DocumentationFile>bin\$(Configuration)\Assembly-CSharp.mm.xml</DocumentationFile>
+        -->
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <DebugType>pdbonly</DebugType>
+        <DocumentationFile>bin\$(Configuration)\Assembly-CSharp.mm.xml</DocumentationFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="MonoMod" Version="21.4.29.1">
+            <IncludeAssets>all</IncludeAssets>
+        </PackageReference>
+
+        <PackageReference Include="MonoMod.RuntimeDetour" Version="21.4.29.1">
+            <IncludeAssets>all</IncludeAssets>
+        </PackageReference>
+
+        <PackageReference Include="MonoMod.RuntimeDetour.HookGen" Version="21.4.29.1">
+            <IncludeAssets>all</IncludeAssets>
+        </PackageReference>
+        
+        <!--
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.1">
+            <IncludeAssets>all</IncludeAssets>
+        </PackageReference>
+        -->
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+            <HintPath>../Vanilla/Assembly-CSharp.dll</HintPath>
+            <SpecificVersion>False</SpecificVersion>
+        </Reference>
+        <!--
+        <Reference Include="mscorlib, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+            <HintPath>../Vanilla/mscorlib.dll</HintPath>
+            <SpecificVersion>False</SpecificVersion>
+        </Reference>
+        -->
+        <!--
+        <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=null">
+            <HintPath>../JsonNet/Newtonsoft.Json.dll</HintPath>
+            <SpecificVersion>False</SpecificVersion>
+        </Reference>
+        -->
+        <Reference Include="System.Runtime.Serialization, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+            <SpecificVersion>False</SpecificVersion>
+        </Reference>
+        <Reference Include="PlayMaker, Version=1.6.0.0, Culture=neutral, processorArchitecture=MSIL">
+            <HintPath>../Vanilla/PlayMaker.dll</HintPath>
+            <SpecificVersion>False</SpecificVersion>
+        </Reference>
+        <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+            <HintPath>../Vanilla/UnityEngine.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+            <HintPath>../Vanilla/UnityEngine.UI.dll</HintPath>
+            <SpecificVersion>False</SpecificVersion>
+        </Reference>
+    </ItemGroup>
+</Project>
