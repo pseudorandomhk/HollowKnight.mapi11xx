@@ -46,7 +46,7 @@ internal static class ModLoader
         if (modDir == null)
         {
             LoaderState = LoadState.Loaded;
-            Logger.API.LogError($"Unknown platform {Application.platform}, aborting");
+            Logger.API.LogError($"Unsupported platform {Application.platform}, aborting");
             return;
         }
 
@@ -68,13 +68,13 @@ internal static class ModLoader
             }
             catch (Exception e)
             {
-                Logger.API.LogWarn($"Failed to load mod {t.Name}, continuing:\n{e}");
+                Logger.API.LogWarn($"Failed to load mod {t.Name}:\n{e}\nContinuing...");
                 continue;
             }
 
             if (mod == null)
             {
-                Logger.API.LogWarn($"Failed to load mod {mod.Name} due to no parameterless constructor, continuing");
+                Logger.API.LogWarn($"Failed to load mod {t.FullName} due to no parameterless constructor; continuing");
                 continue;
             }
 
@@ -96,7 +96,7 @@ internal static class ModLoader
             }
             catch (Exception e)
             {
-                Logger.API.LogWarn($"Error initializing mod {m.Name}, continuing\n{e}");
+                Logger.API.LogWarn($"Error initializing mod {m.Name}:\n{e}\nContinuing...");
             }
         }
         LoaderState = LoadState.Initialized;
@@ -118,7 +118,7 @@ internal static class ModLoader
             }
             catch (Exception e)
             {
-                Logger.API.LogWarn($"Unable to load assembly from {path}, continuing:\n{e}");
+                Logger.API.LogWarn($"Unable to load assembly from {path}:\n{e}\nContinuing...");
                 continue;
             }
 
@@ -131,12 +131,12 @@ internal static class ModLoader
             catch (ReflectionTypeLoadException e)
             {
                 Logger.API.LogWarn(
-                    $"Encountered exception(s) while loading {path}, attempting partial load\n:{String.Join("\n", e.LoaderExceptions.Select(le => le.Message).ToArray())}");
+                    $"Encountered exception(s) while loading {path}:\n{String.Join("\n", e.LoaderExceptions.Select(le => le.Message).ToArray())}\nAttempting partial load...");
                 types = e.Types.Where(t => t != null).ToArray();
             }
             catch (Exception e)
             {
-                Logger.API.LogWarn($"Failed loading types from {path}, continuing:\n{e}");
+                Logger.API.LogWarn($"Failed loading types from {path}:\n{e}\nContinuing...");
                 continue;
             }
             

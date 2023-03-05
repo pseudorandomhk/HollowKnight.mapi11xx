@@ -27,7 +27,7 @@ internal class LoadedModsList : MonoBehaviour
         if (UIManager.instance == null)
             return;
 
-        if (text != null && UIManager.instance.uiState is UIState.MAIN_MENU_HOME or UIState.PAUSED)
+        if (UIManager.instance.uiState is UIState.MAIN_MENU_HOME or UIState.PAUSED)
             GUI.Label(new Rect(0, 0, Screen.width, Screen.height), text, style);
     }
 

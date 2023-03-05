@@ -11,6 +11,20 @@ namespace Modding.Patches;
 [MonoModPatch("global::GameManager")]
 public class GameManager : global::GameManager
 {
+    [MonoModIgnore] private static GameManager _instance;
+    
+    public static GameManager get_instance()
+    {
+        if (GameManager._instance == null)
+        {
+            GameManager._instance = FindObjectOfType<GameManager>();
+            if (GameManager._instance != null && Application.isPlaying)
+                DontDestroyOnLoad(GameManager._instance.gameObject);
+        }
+
+        return GameManager._instance;
+    }
+    
     [MonoModIgnore] private bool tilemapDirty;
     [MonoModIgnore] private bool waitForManualLevelStart;
     [MonoModIgnore] public new event DestroyPooledObjects DestroyPersonalPools;
@@ -20,7 +34,7 @@ public class GameManager : global::GameManager
 
     [MonoModIgnore]
     private extern void ManualLevelStart();
-    
+
     [MonoModReplace]
     public new IEnumerator LoadSceneAdditive(string destScene)
     {
